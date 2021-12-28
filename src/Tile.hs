@@ -44,13 +44,13 @@ orientations = [north, east, south, west]
 
 data Tile = Tile
   { shape :: Shape,
-    target :: Maybe Int,
+    number :: Int,
     start :: Maybe Int
   }
   deriving (Eq, Show)
 
 fromShape :: Shape -> Tile
-fromShape s = Tile {shape = s, target = Nothing, start = Nothing}
+fromShape s = Tile {shape = s, number = 0, start = Nothing}
 
 applyOrientation :: Tile -> Orientation -> Tile
 applyOrientation tile@Tile {shape = s} f = tile {shape = Set.map f s}

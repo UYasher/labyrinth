@@ -36,9 +36,6 @@ findLocation (Board b) p = do
   where
     xs = map (List.findIndex p) b
 
-findTargets :: Board -> Maybe [Int]
-findTargets (Board b) = sequence . filter Maybe.isJust . concatMap (map target) $ b
-
 initialPlayerLocations :: Board -> Int -> Maybe [Location]
 initialPlayerLocations board numPlayers = sequence $ startLocation <$> players
   where
@@ -75,26 +72,17 @@ addDefaultStarts b = foldr addStart b $ zip startLocations players
     players = [0 .. 3]
     addStart (loc, p) b' = updateLocation loc b' ((getLocation loc b') {start = Just p})
 
--- An alternative to using targets would be to give each tile a unique number, and then to specify what tile the player wants to get to
--- This also makes it easier to run the search (as we know the numbers of all the tiles at the beginning of the game)
--- I should update the
-addDefaultTargets :: Board -> Board
-addDefaultTargets b = foldr addTarget b $ zip targetLocations targets
+numberTiles :: Board -> Board
+numberTiles board@(Board b) = Board $ chunksOf (width board) (numberList 0 $ concat b)
   where
-    targetLocations = []
-    targets = [0 .. 11]
-    addTarget (loc, t) b' = updateLocation loc b' ((getLocation loc b') {target = Just t})
-
-addAcTargets :: Board -> Board
-addAcTargets b = foldr addTarget b $ zip targetLocations targets
-  where
-    targetLocations = []
-    targets = [12 .. 23]
-    addTarget (loc, t) b' = updateLocation loc b' ((getLocation loc b') {target = Just t})
+    numberList n (x : xs) = x {number = n} : numberList (n + 1) xs
+    numberList _ [] = []
+    chunksOf _ [] = []
+    chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
 acBoard :: Board
 acBoard =
-  addDefaultStarts . fromShapes $
+  addDefaultStarts . numberTiles . fromShapes $
     [ [Set.map east elbow, Set.map south tee, Set.map south tee, Set.map north elbow, Set.map south tee, Set.map east elbow, Set.map south elbow],
       [Set.map south elbow, Set.map east pipe, Set.map east pipe, Set.map east pipe, Set.map south elbow, Set.map west elbow, Set.map east elbow],
       [Set.map east tee, Set.map north elbow, Set.map east tee, Set.map north elbow, Set.map south tee, Set.map east elbow, Set.map west tee],
