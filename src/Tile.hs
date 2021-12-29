@@ -74,3 +74,29 @@ instance Pretty Tile where
     | s == Set.map west tee = "┤"
     -- "N" -- N stands for Non-standard
     | otherwise = "N"
+
+-- Shorthand shapes and orientation to allow easier input of board
+
+(#) :: Ord b => (a -> b) -> Set.Set a -> Set.Set b
+(#) = Set.map
+
+n :: Orientation
+n = north
+
+e :: Orientation
+e = east
+
+w :: Orientation
+w = west
+
+s :: Orientation
+s = south
+
+t :: Shape
+t = tee
+
+p :: Shape
+p = pipe
+
+l :: Shape
+l = elbow

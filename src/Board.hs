@@ -80,9 +80,12 @@ numberTiles board@(Board b) = Board $ chunksOf (width board) (numberList 0 $ con
     chunksOf _ [] = []
     chunksOf n xs = take n xs : chunksOf n (drop n xs)
 
+setUpBoard :: [[Shape]] -> Board
+setUpBoard = addDefaultStarts . numberTiles . fromShapes
+
 acBoard :: Board
 acBoard =
-  addDefaultStarts . numberTiles . fromShapes $
+  setUpBoard
     [ [Set.map east elbow, Set.map south tee, Set.map south tee, Set.map north elbow, Set.map south tee, Set.map east elbow, Set.map south elbow],
       [Set.map south elbow, Set.map east pipe, Set.map east pipe, Set.map east pipe, Set.map south elbow, Set.map west elbow, Set.map east elbow],
       [Set.map east tee, Set.map north elbow, Set.map east tee, Set.map north elbow, Set.map south tee, Set.map east elbow, Set.map west tee],
