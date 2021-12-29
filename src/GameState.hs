@@ -4,6 +4,7 @@ module GameState where
 
 import Board
 import Classes (Pretty (..))
+import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import Tile
 
@@ -125,18 +126,22 @@ applyInsertMove b = uncurry4 $ insertTile b
     uncurry4 f (a, b, c, d) = f a b c d
 
 allInsertions :: GameState -> [GameState]
-allInsertions g@Game {board = b, extraTile = t} = map (toBoard . applyInsertMove b) $ allInsertMoves t (insertRows g) (insertCols g)
+allInsertions g@Game {board = b, extraTile = t} = map (toGame . applyInsertMove b) $ allInsertMoves t (insertRows g) (insertCols g)
   where
-    toBoard = \(t', b') -> g {board = b', extraTile = t'}
+    toGame = \(t', b') -> g {board = b', extraTile = t'}
 
--- Given the game state, the player, and the tile they want to reach, return all methods of reaching that tile
+-- Given the game state, the player location, and the tile they want to reach, return all methods of reaching that tile
 -- The methods are tuples of the form (isRow, row/col, isFront, moveLocation)
-nextMoveCaptures :: GameState -> Int -> Int -> [(Tile, Bool, Int, Bool, Location)]
-nextMoveCaptures g p n = undefined
+-- TODO: Test this method. It generally seems to work correctly, but I'm not sure it does
+-- It also doesn't take into account movement of the player due to insertions.
+-- TODO: Account for movement of player due to insertions
+-- TODO: Clean up this function
+nextMoveCaptures :: GameState -> Location -> Int -> [(Tile, Bool, Int, Bool, Location)]
+nextMoveCaptures g@Game {board = b, extraTile = t} loc n = map (\(g, (a, b, c, d)) -> (a, b, c, d, Maybe.fromJust $ findLocation (board g) (\t' -> number t' == n))) . filter (Set.member n . flip findSCC loc . board . fst) $ zip (allInsertions g) (allInsertMoves t (insertRows g) (insertCols g))
 
 -- TODOs:
--- Write an easy input format which lets me create boards as I encounter them in real-life
--- Write an east move format which lets me update boards. This probably looks like (Orientation, Bool, Int, Bool, Location)
+-- Write an easy move format which lets me update boards.
+--   This probably looks like (Orientation, Bool, Int, Bool, Location)
 -- Add random number generation
 -- Add readme
 -- Extend to captures at larger depths
