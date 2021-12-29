@@ -100,8 +100,23 @@ findSCC b loc = Set.map toTileNumbers reachable
 boardToSubset :: Board -> Set.Set Int -> Board
 boardToSubset (Board b) s = Board $ map (map (\tile -> if number tile `elem` s then tile else fromShape Set.empty)) b
 
+allExactInsertions :: Board -> Tile -> Set.Set Int -> Set.Set Int -> [(Tile, Board)]
+allExactInsertions b t rowSet colSet = rowInsertGames ++ colInsertGames
+  where
+    double [] = []
+    double (x : xs) = x : x : double xs
+    rowInsertGames = uncurry (insertTileRow b t) <$> rowInserts
+    rowInserts = zip (double . Set.toList $ rowSet) (iterate not True)
+    colInsertGames = uncurry (insertTileCol b t) <$> colInserts
+    colInserts = zip (double . Set.toList $ colSet) (iterate not True)
+
+-- TODO: clean up this function
+-- TODO: Make this work for all orientations of the tile
+-- Make this a function Board -> Tile -> [(Tile, Board)] and create a function for GameState that uses it
 allInsertions :: GameState -> [GameState]
-allInsertions g = undefined
+allInsertions g@Game {board = b, extraTile = t} = toBoard <$> concatMap (\t'' -> allExactInsertions b t'' (insertRows g) (insertCols g)) (allOrientations t)
+  where
+    toBoard = \(t', b') -> g {board = b', extraTile = t'}
 
 -- Given the game state, the player, and the tile they want to reach, return all methods of reaching that tile
 -- The methods are tuples of the form (isRow, row/col, isFront, moveLocation)
