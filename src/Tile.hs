@@ -52,11 +52,8 @@ data Tile = Tile
 fromShape :: Shape -> Tile
 fromShape s = Tile {shape = s, number = 0, start = Nothing}
 
-applyOrientation :: Tile -> Orientation -> Tile
-applyOrientation tile@Tile {shape = s} f = tile {shape = Set.map f s}
-
 allOrientations :: Tile -> [Tile]
-allOrientations tile = map (applyOrientation tile) orientations
+allOrientations tile = map (\s -> tile {shape = s}) . Set.toList . Set.fromList $ map (\f -> Set.map f $ shape tile) orientations
 
 -- TODO: Add colors based on goal number
 -- TODO: Maybe make the representation 3x3 so we can display additional information?
