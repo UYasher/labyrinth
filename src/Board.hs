@@ -13,7 +13,7 @@ newtype Board = Board [[Tile]] deriving (Show)
 instance Pretty Board where
   pretty (Board b) = concatMap concatRow b
     where
-      concatRow r = concatMap pretty r ++ "\n"
+      concatRow r = concatMap Classes.pretty r ++ "\n"
 
 fromShapes :: [[Shape]] -> Board
 fromShapes = Board . map (map fromShape)
@@ -42,12 +42,6 @@ initialPlayerLocations board numPlayers = sequence $ startLocation <$> players
     players = [0 .. numPlayers - 1]
     startLocation player = findLocation board (\t -> start t == Just player)
 
-defaultInsertRows :: Set.Set Int
-defaultInsertRows = Set.fromList [1, 3, 5]
-
-defaultInsertCols :: Set.Set Int
-defaultInsertCols = defaultInsertRows
-
 getLocation :: Location -> Board -> Tile
 getLocation (x, y) (Board b) = b !! x !! y
 
@@ -64,6 +58,12 @@ height (Board b) = length b
 
 width :: Board -> Int
 width (Board b) = length $ head b
+
+isEdge :: Board -> Location -> Bool
+isEdge b (x, y) = isVerticalEdge || isHorizontalEdge
+  where
+    isVerticalEdge = x == 0 || x == height b
+    isHorizontalEdge = y == 0 || y == width b
 
 addDefaultStarts :: Board -> Board
 addDefaultStarts b = foldr addStart b $ zip startLocations players
