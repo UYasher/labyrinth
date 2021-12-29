@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 module GameState where
 
 import Board
@@ -66,6 +68,9 @@ transposeBoard (Board b) = Board $ transpose b
 insertTileCol :: Board -> Tile -> Int -> Bool -> (Tile, Board)
 insertTileCol b t r front = transposeBoard <$> insertTileRow (transposeBoard b) t r front
 
+insertTile :: Board -> Tile -> Bool -> Int -> Bool -> (Tile, Board)
+insertTile b t isRow = (if isRow then insertTileRow else insertTileCol) b t
+
 inBounds :: Board -> Location -> Bool
 inBounds b (x, y) = 0 <= x && x < height b && 0 <= y && y < width b
 
@@ -100,32 +105,38 @@ findSCC b loc = Set.map toTileNumbers reachable
 boardToSubset :: Board -> Set.Set Int -> Board
 boardToSubset (Board b) s = Board $ map (map (\tile -> if number tile `elem` s then tile else fromShape Set.empty)) b
 
-allExactInsertions :: Board -> Tile -> Set.Set Int -> Set.Set Int -> [(Tile, Board)]
-allExactInsertions b t rowSet colSet = rowInsertGames ++ colInsertGames
-  where
-    double [] = []
-    double (x : xs) = x : x : double xs
-    rowInsertGames = uncurry (insertTileRow b t) <$> rowInserts
-    rowInserts = zip (double . Set.toList $ rowSet) (iterate not True)
-    colInsertGames = uncurry (insertTileCol b t) <$> colInserts
-    colInserts = zip (double . Set.toList $ colSet) (iterate not True)
+double :: [a] -> [a]
+double [] = []
+double (x : xs) = x : x : double xs
 
--- TODO: clean up this function
--- TODO: Make this work for all orientations of the tile
--- Make this a function Board -> Tile -> [(Tile, Board)] and create a function for GameState that uses it
+allInsertPositions :: Set.Set Int -> Set.Set Int -> [(Bool, Int, Bool)]
+allInsertPositions rowSet colSet = toInsertPositions True rowSet ++ toInsertPositions False colSet
+  where
+    toInsertPositions :: Bool -> Set.Set Int -> [(Bool, Int, Bool)]
+    toInsertPositions isRow rows = zip3 (repeat isRow) (double . Set.toList $ rows) (iterate not True)
+
+allInsertMoves :: Tile -> Set.Set Int -> Set.Set Int -> [(Tile, Bool, Int, Bool)]
+allInsertMoves t rowSet colSet = concatMap (\(a, b, c) -> map (,a,b,c) $ allOrientations t) (allInsertPositions rowSet colSet)
+
+applyInsertMove :: Board -> (Tile, Bool, Int, Bool) -> (Tile, Board)
+applyInsertMove b = uncurry4 $ insertTile b
+  where
+    uncurry4 :: (a -> b -> c -> d -> e) -> (a, b, c, d) -> e
+    uncurry4 f (a, b, c, d) = f a b c d
+
 allInsertions :: GameState -> [GameState]
-allInsertions g@Game {board = b, extraTile = t} = toBoard <$> concatMap (\t'' -> allExactInsertions b t'' (insertRows g) (insertCols g)) (allOrientations t)
+allInsertions g@Game {board = b, extraTile = t} = map (toBoard . applyInsertMove b) $ allInsertMoves t (insertRows g) (insertCols g)
   where
     toBoard = \(t', b') -> g {board = b', extraTile = t'}
 
 -- Given the game state, the player, and the tile they want to reach, return all methods of reaching that tile
 -- The methods are tuples of the form (isRow, row/col, isFront, moveLocation)
-nextMoveCaptures :: GameState -> Int -> [(Bool, Bool, Int, Location)]
-nextMoveCaptures = undefined
+nextMoveCaptures :: GameState -> Int -> Int -> [(Tile, Bool, Int, Bool, Location)]
+nextMoveCaptures g p n = undefined
 
 -- TODOs:
 -- Write an easy input format which lets me create boards as I encounter them in real-life
---  This probably looks like (Bool, Bool, Location)
+-- Write an east move format which lets me update boards. This probably looks like (Orientation, Bool, Int, Bool, Location)
 -- Add random number generation
 -- Add readme
 -- Extend to captures at larger depths
