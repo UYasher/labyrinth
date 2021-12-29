@@ -42,6 +42,11 @@ initialPlayerLocations board numPlayers = sequence $ startLocation <$> players
     players = [0 .. numPlayers - 1]
     startLocation player = findLocation board (\t -> start t == Just player)
 
+initialPlayerTiles :: Board -> Int -> Maybe [Int]
+initialPlayerTiles board numPlayers = do
+  locs <- initialPlayerLocations board numPlayers
+  pure $ map (number . flip getLocation board) locs
+
 getLocation :: Location -> Board -> Tile
 getLocation (x, y) (Board b) = b !! x !! y
 

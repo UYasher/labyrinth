@@ -12,7 +12,7 @@ import Tile
 data GameState = Game
   { board :: Board, -- The tiles currently in play
     numPlayers :: Int, -- The number of players, $n$
-    playerLocations :: [Location], -- the $n-1$th element of the array has the location of the $n$th player
+    playerTiles :: [Int], -- the $n-1$th element of the array has the tile the $n$th player is standing on
     extraTile :: Tile, -- The tile that will be inserted
     targets :: [[Int]], -- the $n-1$th element of the array has the
     insertRows :: Set.Set Int, -- the rows which we can insert the extra tile into
@@ -22,10 +22,10 @@ data GameState = Game
 
 -- Test this
 initializePlayerLocations :: GameState -> Maybe GameState
-initializePlayerLocations g@Game {numPlayers = n} = updateGameState <$> initialPlayerLocations (board g) n
+initializePlayerLocations g@Game {numPlayers = n} = updateGameState <$> initialPlayerTiles (board g) n
   where
     -- We use this helper function instead of an in-line call so that we can fmap
-    updateGameState p = g {playerLocations = p}
+    updateGameState p = g {playerTiles = p}
 
 defaultInsertRows :: Set.Set Int
 defaultInsertRows = Set.fromList [1, 3, 5]
@@ -39,7 +39,7 @@ acGame =
     Game
       { board = acBoard,
         numPlayers = 4,
-        playerLocations = [], -- TODO: instead of storing locations, players should be associated with tile numbers
+        playerTiles = [],
         extraTile = (fromShape $ Set.map north pipe) {number = 49},
         targets = [[0, 4 .. 23], [1, 5 .. 23], [2, 6 .. 23], [3, 7 .. 23]],
         insertRows = defaultInsertRows,
@@ -125,10 +125,15 @@ applyInsertMove b = uncurry4 $ insertTile b
     uncurry4 :: (a -> b -> c -> d -> e) -> (a, b, c, d) -> e
     uncurry4 f (a, b, c, d) = f a b c d
 
-allInsertions :: GameState -> [GameState]
-allInsertions g@Game {board = b, extraTile = t} = map (toGame . applyInsertMove b) $ allInsertMoves t (insertRows g) (insertCols g)
+applyInsertMoveGame :: GameState -> (Tile, Bool, Int, Bool) -> GameState
+applyInsertMoveGame g@Game {board = b, extraTile = t} = updatePlayerTiles . toGame . applyInsertMove b
   where
     toGame = \(t', b') -> g {board = b', extraTile = t'}
+    -- Check if any players were moved off the board and move those players to the newly inserted tile
+    updatePlayerTiles g'@Game {extraTile = t'} = g' {playerTiles = (\p -> if p == number t' then number t else p) <$> playerTiles g'}
+
+allInsertions :: GameState -> [GameState]
+allInsertions g@Game {extraTile = t} = map (applyInsertMoveGame g) $ allInsertMoves t (insertRows g) (insertCols g)
 
 -- Given the game state, the player location, and the tile they want to reach, return all methods of reaching that tile
 -- The methods are tuples of the form (isRow, row/col, isFront, moveLocation)
