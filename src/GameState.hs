@@ -46,6 +46,19 @@ acGame =
         insertCols = defaultInsertCols
       }
 
+acGame2 :: Maybe GameState
+acGame2 =
+  initializePlayerLocations
+    Game
+      { board = acBoard2,
+        numPlayers = 4,
+        playerTiles = [],
+        extraTile = (fromShape $ Set.map north elbow) {number = 49},
+        targets = [[0, 4 .. 23], [1, 5 .. 23], [2, 6 .. 23], [3, 7 .. 23]],
+        insertRows = defaultInsertRows,
+        insertCols = defaultInsertCols
+      }
+
 -- Take in a board tile, row number, and boolean (representing front/back)
 -- Returns the tile which was pushed off the board, as well as the board with the tile inserted into the front/back of the row
 insertTileRow :: Board -> Tile -> Int -> Bool -> (Tile, Board)
@@ -125,6 +138,7 @@ applyInsertMove b = uncurry4 $ insertTile b
     uncurry4 :: (a -> b -> c -> d -> e) -> (a, b, c, d) -> e
     uncurry4 f (a, b, c, d) = f a b c d
 
+-- TODO: Make it so that we can't insert a tile if it was just removed
 applyInsertMoveGame :: GameState -> (Tile, Bool, Int, Bool) -> GameState
 applyInsertMoveGame g@Game {board = b, extraTile = t} = updatePlayerTiles . toGame . applyInsertMove b
   where
@@ -139,7 +153,6 @@ allInsertions g@Game {extraTile = t} = map (applyInsertMoveGame g) $ allInsertMo
 -- The methods are tuples of the form (isRow, row/col, isFront, moveLocation)
 -- TODO: Test this method. It generally seems to work correctly, but I'm not sure it does
 -- It also doesn't take into account movement of the player due to insertions.
--- TODO: Account for movement of player due to insertions
 -- TODO: Clean up this function
 nextMoveCaptures :: GameState -> Location -> Int -> [(Tile, Bool, Int, Bool, Location)]
 nextMoveCaptures g@Game {board = b, extraTile = t} loc n = map (\(g, (a, b, c, d)) -> (a, b, c, d, Maybe.fromJust $ findLocation (board g) (\t' -> number t' == n))) . filter (Set.member n . flip findSCC loc . board . fst) $ zip (allInsertions g) (allInsertMoves t (insertRows g) (insertCols g))

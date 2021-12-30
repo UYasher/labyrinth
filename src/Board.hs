@@ -99,3 +99,15 @@ acBoard =
       [Set.map east tee, Set.map south tee, Set.map north pipe, Set.map east pipe, Set.map east tee, Set.map north pipe, Set.map north elbow],
       [Set.map north elbow, Set.map south tee, Set.map north tee, Set.map west elbow, Set.map north tee, Set.map east pipe, Set.map west elbow]
     ]
+
+acBoard2 :: Board
+acBoard2 =
+  setUpBoard
+    [ [e # l, s # l, s # t, e # p, s # t, w # l, s # l],
+      [n # t, e # l, n # p, e # l, n # t, e # l, n # p],
+      [e # t, s # l, e # t, n # l, s # t, n # p, w # t],
+      [e # p, e # l, s # t, e # l, n # p, s # l, e # p],
+      [e # t, e # l, n # t, n # p, w # t, s # l, w # t],
+      [n # p, e # l, w # t, n # p, e # l, e # t, n # p],
+      [n # l, n # l, n # t, e # p, n # t, e # p, w # l]
+    ]
