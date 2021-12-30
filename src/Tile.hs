@@ -1,6 +1,7 @@
 module Tile where
 
 import Classes (Cyclic (..), Pretty (..))
+import qualified Data.List as List
 import qualified Data.Set as Set
 
 data Direction = Up | Right | Down | Left deriving (Ord, Enum, Bounded, Eq, Show)
@@ -52,8 +53,19 @@ data Tile = Tile
 fromShape :: Shape -> Tile
 fromShape s = Tile {shape = s, number = 0, start = Nothing}
 
+orient :: Orientation -> Tile -> Tile
+orient o t = t {shape = Set.map o $ shape t}
+
+-- Rotate the shape of the tile until we get one of the base shapes
+-- `take 4` prevents an infinite loop in the case tile is not a rotation of a baseShape
+reorient :: Tile -> Maybe Tile
+reorient = List.find (\t' -> shape t' `elem` baseShapes) . take 4 . iterate (orient east)
+
 allOrientations :: Tile -> [Tile]
-allOrientations tile = map (\s -> tile {shape = s}) . Set.toList . Set.fromList $ map (\f -> Set.map f $ shape tile) orientations
+allOrientations tile = map (\s -> tile {shape = s}) . unique $ shapes
+  where
+    unique = Set.toList . Set.fromList
+    shapes = map (\f -> Set.map f $ shape tile) orientations
 
 -- TODO: Add colors based on goal number
 -- TODO: Maybe make the representation 3x3 so we can display additional information?
