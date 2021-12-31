@@ -3,7 +3,8 @@
 module GameState where
 
 import Board
-import Classes (Pretty (..))
+import Classes (Cyclic (next), Pretty (..))
+import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 import qualified Data.Set as Set
 import Tile
@@ -53,7 +54,7 @@ acGame2 =
       { board = acBoard2,
         numPlayers = 4,
         playerTiles = [],
-        extraTile = (fromShape $ Set.map north elbow) {number = 49},
+        extraTile = (fromShape $ Set.map north pipe) {number = 49},
         targets = [[0, 4 .. 23], [1, 5 .. 23], [2, 6 .. 23], [3, 7 .. 23]],
         insertRows = defaultInsertRows,
         insertCols = defaultInsertCols
@@ -64,7 +65,7 @@ acGame2 =
 insertTileRow :: Board -> Tile -> Int -> Bool -> (Tile, Board)
 insertTileRow board@(Board b) t r front = (removedTile, Board newBoard)
   where
-    removedTile = getLocation (if front then width board - 1 else 0, r) board
+    removedTile = getLocation (r, if front then width board - 1 else 0) board
     newBoard = take r b ++ [newRow] ++ drop (r + 1) b
     oldRow = b !! r
     newRow = if front then t : dropEnd 1 oldRow else drop 1 oldRow ++ [t]
@@ -146,6 +147,11 @@ applyInsertMoveGame g@Game {board = b, extraTile = t} = updatePlayerTiles . toGa
     -- Check if any players were moved off the board and move those players to the newly inserted tile
     updatePlayerTiles g'@Game {extraTile = t'} = g' {playerTiles = (\p -> if p == number t' then number t else p) <$> playerTiles g'}
 
+applyInsertMoveOrientation :: GameState -> (Orientation, Bool, Int, Bool) -> GameState
+applyInsertMoveOrientation g@Game {extraTile = t} (o, a, b, c) = applyInsertMoveGame g (orient o t', a, b, c)
+  where
+    t' = Maybe.fromJust $ reorient t
+
 allInsertions :: GameState -> [GameState]
 allInsertions g@Game {extraTile = t} = map (applyInsertMoveGame g) $ allInsertMoves t (insertRows g) (insertCols g)
 
@@ -158,8 +164,6 @@ nextMoveCaptures :: GameState -> Location -> Int -> [(Tile, Bool, Int, Bool, Loc
 nextMoveCaptures g@Game {board = b, extraTile = t} loc n = map (\(g, (a, b, c, d)) -> (a, b, c, d, Maybe.fromJust $ findLocation (board g) (\t' -> number t' == n))) . filter (Set.member n . flip findSCC loc . board . fst) $ zip (allInsertions g) (allInsertMoves t (insertRows g) (insertCols g))
 
 -- TODOs:
--- Write an easy move format which lets me update boards.
---   This probably looks like (Orientation, Bool, Int, Bool, Location)
 -- Add random number generation
 -- Add readme
 -- Extend to captures at larger depths

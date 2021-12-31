@@ -100,8 +100,21 @@ acBoard =
       [Set.map north elbow, Set.map south tee, Set.map north tee, Set.map west elbow, Set.map north tee, Set.map east pipe, Set.map west elbow]
     ]
 
+-- TODO: make a shortcut to add the fixed tiles
 acBoard2 :: Board
 acBoard2 =
+  setUpBoard
+    [ [e # l, w # l, s # t, e # l, s # t, s # l, s # l],
+      [n # p, e # p, e # t, s # l, e # l, n # p, n # p],
+      [e # t, n # p, e # t, n # l, s # t, s # t, w # t],
+      [n # l, w # t, s # l, s # l, n # l, n # p, s # l],
+      [e # t, s # t, n # t, n # l, w # t, e # p, w # t],
+      [w # l, s # l, e # l, e # p, e # p, n # p, w # t],
+      [n # l, e # l, n # t, w # t, n # t, n # p, w # l]
+    ]
+
+acBoard3 :: Board
+acBoard3 =
   setUpBoard
     [ [e # l, s # l, s # t, e # p, s # t, w # l, s # l],
       [n # t, e # l, n # p, e # l, n # t, e # l, n # p],
