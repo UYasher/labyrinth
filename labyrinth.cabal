@@ -37,6 +37,7 @@ library
   build-depends:
       base >=4.7 && <5
     , containers >=0.5
+    , raw-strings-qq
   default-language: Haskell2010
 
 executable labyrinth-exe
@@ -50,6 +51,7 @@ executable labyrinth-exe
       base >=4.7 && <5
     , containers >=0.5
     , labyrinth
+    , raw-strings-qq
   default-language: Haskell2010
 
 test-suite labyrinth-test
@@ -64,4 +66,5 @@ test-suite labyrinth-test
       base >=4.7 && <5
     , containers >=0.5
     , labyrinth
+    , raw-strings-qq
   default-language: Haskell2010
