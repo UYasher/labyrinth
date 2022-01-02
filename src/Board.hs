@@ -7,7 +7,8 @@ import qualified Data.Set as Set
 import Tile
 
 -- `Board !! i !! j` takes the i-th row and j-th column
--- I might want to make this a monad and traversable
+-- TODO: Re-implement the board using arrays rather than lists
+-- TODO: Make the board traversable and a monad
 newtype Board = Board [[Tile]] deriving (Show)
 
 instance Pretty Board where

@@ -87,7 +87,7 @@ instance Pretty Tile where
     -- "N" -- N stands for Non-standard
     | otherwise = "N"
 
--- Shorthand shapes and orientation to allow easier input of board
+{- Shorthand shapes and orientation to allow easier input of board -}
 
 (#) :: Ord b => (a -> b) -> Set.Set a -> Set.Set b
 (#) = Set.map

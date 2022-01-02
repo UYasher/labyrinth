@@ -169,7 +169,6 @@ nextMoveCaptures g@Game {board = b, extraTile = t} loc n = map (\(g, (a, b, c, d
 
 -- TODOs:
 -- Add random number generation
--- Add readme
--- Extend to captures at larger depths
 -- Extend to random generation of games
--- Review and make use of the state monad
+-- Create solvers for other heuristics (e.g. maximizing movable space, minimizing opponents' space, etc.)
+-- Use reinforcement learning to make more robust agents

@@ -11,9 +11,11 @@ import qualified Data.Maybe as Maybe
 import GameState
 import Tile (Orientation, east, north, number, shape, south, west)
 
+-- TODO: Allow the user to undo steps of the simulation
 simulate :: GameState -> IO GameState
 simulate g = applyInsertMoveOrientation g <$> getInstruction g
 
+-- TODO: Prompt user again if they give invalid input
 getInstruction :: GameState -> IO (Orientation, Bool, Int, Bool)
 getInstruction g = do
   putStrLn $ "How do you want to insert " ++ (pretty . extraTile $ g) ++ "?: "
@@ -39,7 +41,7 @@ getOrientation g = do
 
 -- Stuffing help in getOrientation requires us to pass the GameState through many functions
 -- TODO: change the invocation of help to prevent passing GameState
--- TODO: change the name of help to something more informative
+-- TODO: change the name of this function to something more informative
 help :: GameState -> IO ()
 help g = do
   print "Okay, let me help you..."
@@ -60,7 +62,3 @@ program g = do
   g' <- simulate g
   program g'
   pure ()
-
--- TODOs:
--- Show the tile
--- Allow the user to input their number and a desired location
